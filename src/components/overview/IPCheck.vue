@@ -137,9 +137,21 @@ const displayLabel = (info: IPInfo, api: IP_INFO_API) => {
   return distinct([info.country, info.organization]).join(' ') || info.ip
 }
 
+// 核心修改：将国家代码转换为国旗 Emoji
+const getFlagEmoji = (info: IPInfo) => {
+  const code = (info as any).countryCode || (info as any).isoCode || ((info.country && info.country.length === 2) ? info.country : '')
+  if (!code || code.length !== 2) return ''
+  const codePoints = code
+    .toUpperCase()
+    .split('')
+    .map((char) => 127397 + char.charCodeAt(0))
+  return String.fromCodePoint(...codePoints) + ' '
+}
+
 const successResult = (info: IPInfo, api: IP_INFO_API): IPCheckResult => {
-  const label = displayLabel(info, api)
-  const privateLabel = api === IP_INFO_API.IPIP ? `${info.country || '**'} ** ** **` : label
+  const flag = getFlagEmoji(info)
+  const label = flag + displayLabel(info, api)
+  const privateLabel = flag + (api === IP_INFO_API.IPIP ? `${info.country || '**'} ** ** **` : displayLabel(info, api))
 
   return {
     api,
